@@ -1,35 +1,38 @@
-<!DOCTYPE html>
-<html>
-<head>
-  <meta charset="UTF-8">
-  <title>Seleziona posizione</title>
-  <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
-  <style>
-    body, html { margin: 0; height: 100%; }
-    #map { height: 100%; width: 100%; }
-  </style>
-</head>
-<body>
-  <div id="map"></div>
+<div id="map" style="height: 300px; border-radius: 12px; margin-bottom: 16px;"></div>
+<input id="coords" type="hidden" name="coords">
 
-  <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
-  <script>
-    const formURL = "https://tally.so/r/7RlEe9";
+<link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+<script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
 
-    const map = L.map('map').setView([46.0, 8.0], 7);
-    L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png").addTo(map);
+<script>
+let map = L.map('map').setView([0, 0], 2);
 
-    map.on("click", e => {
-      const lat = e.latlng.lat.toFixed(6);
-      const lng = e.latlng.lng.toFixed(6);
-      window.location.href = formURL + "?coords=" + lat + "," + lng;
-    });
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+  attribution: '© OpenStreetMap contributors'
+}).addTo(map);
 
-    // Geolocalizzazione
-    navigator.geolocation.getCurrentPosition(pos => {
-      map.setView([pos.coords.latitude, pos.coords.longitude], 14);
-    });
-  </script>
-</body>
-</html>
+let marker = L.marker([0, 0], {draggable: true}).addTo(map);
 
+marker.on('move', () => {
+  const pos = marker.getLatLng();
+  document.getElementById("coords").value = pos.lat + "," + pos.lng;
+});
+
+map.on('click', e => {
+  marker.setLatLng(e.latlng);
+  document.getElementById("coords").value = e.latlng.lat + "," + e.latlng.lng;
+});
+
+navigator.geolocation.getCurrentPosition(
+  pos => {
+    const lat = pos.coords.latitude;
+    const lng = pos.coords.longitude;
+    map.setView([lat, lng], 14);
+    marker.setLatLng([lat, lng]);
+    document.getElementById("coords").value = lat + "," + lng;
+  },
+  () => {
+    map.setView([46, 8], 5);
+  }
+);
+</script>
